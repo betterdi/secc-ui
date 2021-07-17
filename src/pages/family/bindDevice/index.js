@@ -45,9 +45,9 @@ class AddFamily extends React.Component {
   constructor() {
     super()
     this.state = {
-      deviceList: [],
-      deviceType: "",
-      deviceSN: "",
+      deviceList: [], // 设备列表
+      deviceType: "", // 设备类型
+      deviceSN: "", // 设备序列号
       loading: false,
     }
   }
@@ -89,7 +89,9 @@ class AddFamily extends React.Component {
       })
     }
   }
-
+  /**
+   * 添加设备
+   */
   async submit() {
     this.setState({
       loading: true,
@@ -97,7 +99,7 @@ class AddFamily extends React.Component {
 
     const keyring = new Keyring({ type: "sr25519" })
     const pair = keyring.addFromUri(this.props.user.mnemonic)
-
+    // eslint-disable-next-line
     const wsProvider = new WsProvider(process.env.REACT_APP_WS_URL)
     const api = await ApiPromise.create({
       provider: wsProvider,

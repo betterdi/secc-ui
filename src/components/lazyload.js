@@ -3,27 +3,10 @@
  * @Date: 2021-06-22 00:03:26
  * @Description: 懒加载
  */
-import React from "react"
 import Loadable from "react-loadable"
-import { Icon } from "antd-mobile"
+import pageLoading from "./pageLoading"
 
-//通用的懒加载
-const loadingComponent = () => {
-  return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <Icon size="lg" type="loading" style={{ margin: "0 auto" }} />
-    </div>
-  )
-}
-
-function lazyLoad(loader, loading = loadingComponent) {
+function lazyLoad(loader, loading = pageLoading) {
   return Loadable({
     loader, //需要懒加载的组件
     loading,

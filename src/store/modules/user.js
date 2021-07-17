@@ -3,16 +3,29 @@ import { createSlice } from "@reduxjs/toolkit"
 export const user = createSlice({
   name: "user",
   initialState: {
-    addr: "5FAA3M66deNYebZScfN2JvKxqxu73WJpJm8JuKXB8CVsrvut",
-    mnemonic:
-      "stone quarter describe awful salmon wave reveal injury transfer sniff athlete credit",
-    // addr: "5DniUHH4FRsdeJeDPDVXSt5Q76oPvYdyN1Pj1F9cTQuHH8Zp",
+    addr: "",
+    mnemonic: "",
+    // addr: "5FAA3M66deNYebZScfN2JvKxqxu73WJpJm8JuKXB8CVsrvut",
     // mnemonic:
-    //   "economy defy spend birth improve weather public absorb message merge fossil lens",
+    //   "stone quarter describe awful salmon wave reveal injury transfer sniff athlete credit",
     currentRelatives: null,
     relativesList: [],
     deviceList: [],
     chronicTaboos: null,
+    userList: [
+      // {
+      //   name: "ZORRO",
+      //   addr: "5DniUHH4FRsdeJeDPDVXSt5Q76oPvYdyN1Pj1F9cTQuHH8Zp",
+      //   mnemonic:
+      //     "economy defy spend birth improve weather public absorb message merge fossil lens",
+      // },
+      {
+        name: "LUCY",
+        addr: "5FAA3M66deNYebZScfN2JvKxqxu73WJpJm8JuKXB8CVsrvut",
+        mnemonic:
+          "stone quarter describe awful salmon wave reveal injury transfer sniff athlete credit",
+      },
+    ],
   },
   reducers: {
     setAddr: (state, action) => {

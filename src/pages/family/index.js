@@ -25,7 +25,7 @@ import menuImg2 from "@/assets/images/scan.png"
 import menuImg1 from "@/assets/images/archives.png"
 import avatarMale from "@/assets/images/male.png"
 import avatarFemale from "@/assets/images/female.png"
-
+import PageLoading from "@/components/pageLoading"
 // 菜单KEY
 const MENU_KEY = {
   ARCHIVE: 1,
@@ -290,6 +290,7 @@ class Family extends React.Component {
         age: "",
       },
       relatives: [],
+      loading: true,
     }
   }
 
@@ -300,8 +301,11 @@ class Family extends React.Component {
       types: typeSettings,
     })
     let result = await api.query.healthAi.acRelations(this.props.user.addr)
+    this.setState({
+      loading: false,
+    })
     let persons = result.value
-    if (!persons.isEmpty) {
+    if (!result.isEmpty) {
       let relatives = persons.map((item) => {
         let person = {}
         person.height = hexToNumber(item.get("height"))
@@ -399,6 +403,9 @@ class Family extends React.Component {
   }
 
   render() {
+    if (this.state.loading) {
+      return <PageLoading></PageLoading>
+    }
     return (
       <div className="family-wrapper">
         <div>

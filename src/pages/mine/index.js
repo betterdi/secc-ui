@@ -12,7 +12,7 @@ import { WhiteSpace, WingBlank, Button } from "antd-mobile"
 import { hexToNumber, u8aToString } from "@polkadot/util"
 import { RELATIVES_TYPE } from "@/const/type"
 import { idToGender, idToAge } from "@/util"
-import { Link } from "react-router-dom"
+import { Link, withRouter } from "react-router-dom"
 import emptyImg from "@/assets/images/myempty.png"
 import { ApiPromise, WsProvider } from "@polkadot/api"
 import { cryptoWaitReady } from "@polkadot/util-crypto"
@@ -38,10 +38,6 @@ class Mine extends React.Component {
     }
   }
 
-  componentDidMount() {
-    this.getMyselfInfo()
-  }
-
   /**
    * 获取本人信息
    */
@@ -53,52 +49,72 @@ class Mine extends React.Component {
       provider: wsProvider,
       types: typeSettings,
     })
-    let result = await api.query.healthAi.relations(
-      this.props.user.addr,
-      RELATIVES_TYPE.SELF
-    )
-    if (!result.isEmpty) {
-      let person = result.value
+    try {
+      let result = await api.query.healthAi.relations(
+        this.props.user.addr,
+        RELATIVES_TYPE.SELF
+      )
+      if (!result.isEmpty) {
+        let person = result.value
+        this.setState({
+          user: {
+            id_card: u8aToString(person.get("id_card")),
+            name: u8aToString(person.get("name")),
+            height: hexToNumber(person.get("height")),
+            weight: hexToNumber(person.get("weight")),
+          },
+        })
+      } else {
+        this.setState({
+          empty: true,
+        })
+      }
       this.setState({
-        user: {
-          id_card: u8aToString(person.get("id_card")),
-          name: u8aToString(person.get("name")),
-          height: hexToNumber(person.get("height")),
-          weight: hexToNumber(person.get("weight")),
-        },
+        loaded: true,
       })
-    } else {
+    } catch (err) {
       this.setState({
         empty: true,
+        loaded: true,
       })
     }
-    this.setState({
-      loaded: true,
-    })
+  }
+
+  logout() {
+    sessionStorage.removeItem("isLogin")
+    this.props.setCurrentRelatives(null)
+    this.props.setRelativesList([])
+    this.props.setAddr("")
+    this.props.setMnemonic("")
+    this.props.setActiveName("family")
+    this.props.history.push("/login")
   }
 
   render() {
+    let user = this.props.user.relativesList.find(
+      (item) => item.relationType == RELATIVES_TYPE.SELF
+    )
     let genderImg =
-      idToGender(this.state.user.id_card) === "男" ? avatarMale : avatarFemale
+      user && idToGender(user.id_card) === "男" ? avatarMale : avatarFemale
 
     return (
       <div className="content-wrapper">
         {this.props.app.activeName === "mine" && <Nav></Nav>}
-        {this.state.loaded && !this.state.empty && (
+        {user && (
           <div className="info-card-wrapper">
             <img className="avatar" src={genderImg} />
             <div className="info">
               <div>
                 <span className="label">姓名：</span>
-                <span className="data">{this.state.user.name}</span>
+                <span className="data">{user.name}</span>
                 <span className="label" style={{ marginLeft: "16px" }}>
                   年龄：
                 </span>
-                <span className="data">{idToAge(this.state.user.id_card)}</span>
+                <span className="data">{idToAge(user.id_card)}</span>
               </div>
               <div>
                 <span className="label">性别：</span>
-                <span className="data">{idToGender(this.state.user.id_card)}</span>
+                <span className="data">{idToGender(user.id_card)}</span>
               </div>
               <div>
                 <span className="label">钱包地址：</span>
@@ -106,46 +122,10 @@ class Mine extends React.Component {
               </div>
             </div>
           </div>
-          // <List>
-          //   <InputItem
-          //     clear
-          //     value={this.props.user.addr}
-          //     editable={false}
-          //     placeholder="请输入钱包地址"
-          //     ref={(el) => (this.nameInput = el)}
-          //   >
-          //     钱包地址
-          //   </InputItem>
-          //   <InputItem
-          //     clear
-          //     editable={this.state.empty}
-          //     value={this.state.user.name}
-          //     ref={(el) => (this.IDInput = el)}
-          //   >
-          //     姓名
-          //   </InputItem>
-          //   <InputItem
-          //     clear
-          //     editable={this.state.empty}
-          //     value={idToAge(this.state.user.id_card)}
-          //     type="digit"
-          //     ref={(el) => (this.heightInput = el)}
-          //   >
-          //     年龄
-          //   </InputItem>
-          //   <InputItem
-          //     clear
-          //     editable={this.state.empty}
-          //     value={idToGender(this.state.user.id_card)}
-          //     ref={(el) => (this.weightInput = el)}
-          //   >
-          //     性别
-          //   </InputItem>
-          // </List>
         )}
         <WhiteSpace />
         <WingBlank>
-          {this.state.empty && (
+          {!user && (
             <div className="empty-wrapper">
               <img src={emptyImg} className="avatar" />
               <div className="tip">还没有添加本人信息哦！</div>
@@ -162,13 +142,48 @@ class Mine extends React.Component {
             </div>
           )}
         </WingBlank>
+        <WhiteSpace />
+        <WingBlank>
+          <Button onClick={this.logout.bind(this)}>
+            <i className="iconfont icon-dianyuanjianguanbiguanjituichu exit-icon"></i>
+            退出登录
+          </Button>
+        </WingBlank>
       </div>
     )
   }
 }
 
+const mapDispatchToProps = (dispatch) => ({
+  setActiveName: (activeName) =>
+    dispatch({
+      type: "app/setActiveName",
+      payload: activeName,
+    }),
+  setCurrentRelatives: (currentRelatives) =>
+    dispatch({
+      type: "user/setCurrentRelatives",
+      payload: currentRelatives,
+    }),
+  setRelativesList: (relativesList) =>
+    dispatch({
+      type: "user/setRelativesList",
+      payload: relativesList,
+    }),
+  setAddr: (chronicTaboos) =>
+    dispatch({
+      type: "user/setAddr",
+      payload: chronicTaboos,
+    }),
+  setMnemonic: (chronicTaboos) =>
+    dispatch({
+      type: "user/setMnemonic",
+      payload: chronicTaboos,
+    }),
+})
+
 function mapStateToProps(state) {
   return Object.assign({}, state)
 }
 
-export default connect(mapStateToProps)(Mine)
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Mine))

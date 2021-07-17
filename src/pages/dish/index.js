@@ -22,22 +22,27 @@ class Dish extends React.Component {
       isForbidden: false,
     }
   }
-
+  /**
+   * 立即识别
+   */
   async handleClick() {
     let accessToken = this.props.bd.accessToken
     this.setState({
       loading: true,
     })
     if (!accessToken) {
+      // 获取access_token
       let res = await getAccessToken()
       accessToken = res.data.access_token
       this.props.setAccessToken(accessToken)
     }
     let { dishImg } = this.state
+    // 识别菜品
     let res2 = await classifyDish(accessToken, encodeURIComponent(dishImg))
     let dishName = res2.data.result[0].name
     let { chronicTaboos } = this.props.user
     let isForbidden = false
+    // 判断家属的慢性病是否可以食用该菜品
     Object.keys(chronicTaboos).forEach((chronic) => {
       let taboosInclude = chronicTaboos[chronic].includes(dishName)
       if (taboosInclude) {
@@ -49,9 +54,6 @@ class Dish extends React.Component {
       loading: false,
       isForbidden: isForbidden,
     })
-  }
-  uploadFile() {
-    document.querySelector("#upload").click()
   }
   onChange(files) {
     if (files && files.length > 0) {

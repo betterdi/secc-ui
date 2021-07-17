@@ -36,12 +36,14 @@ class AddFamily extends React.Component {
   constructor() {
     super()
     this.state = {
-      relative: "",
+      relative: "", // 家属关系
       loading: false,
-      chronic: [],
+      chronic: [], // 慢性病
     }
   }
-
+  /**
+   * 提交添加家属
+   */
   async submit() {
     await cryptoWaitReady()
     // eslint-disable-next-line
@@ -71,9 +73,22 @@ class AddFamily extends React.Component {
       })
       .signAndSend(pair, (result) => {
         if (result.status.isInBlock) {
+          // 上链成功
           this.setState({
             loading: false,
           })
+          this.props.setRelativesList(
+            this.props.user.relativesList.concat([
+              {
+                height: height,
+                weight: weight,
+                name: name,
+                id_card: idNo,
+                relationType: this.state.relative,
+                chronic: this.state.chronic,
+              },
+            ])
+          )
           Toast.success("亲属添加成功！")
           this.props.history.goBack()
         } else if (result.status.isFinalized) {
@@ -83,6 +98,10 @@ class AddFamily extends React.Component {
         }
       })
   }
+  /**
+   * 设置家属的慢性病
+   * @param {Array} val 慢性病
+   */
   onChangeChronic(val) {
     let { chronic } = this.state
     if (!chronic.includes(val)) {
@@ -177,9 +196,16 @@ class AddFamily extends React.Component {
     )
   }
 }
+const mapDispatchToProps = (dispatch) => ({
+  setRelativesList: (relativesList) =>
+    dispatch({
+      type: "user/setRelativesList",
+      payload: relativesList,
+    }),
+})
 
 function mapStateToProps(state) {
   return Object.assign({}, state)
 }
 
-export default connect(mapStateToProps)(withRouter(AddFamily))
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(AddFamily))
